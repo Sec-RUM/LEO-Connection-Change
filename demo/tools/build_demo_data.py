@@ -430,6 +430,21 @@ handshake = {
         {"k": "额外两次往返 4d", "ms": round(4 * _d, 3), "src": "几何往返实算"}
     ],
     "theory": {"two_step_ms": round(_theory2, 3), "four_step_ms": round(_theory4, 2)},
+    # ★口径敏感性（**模型解析，非新仿真**）：四步/两步的时延倍率对「两个定时器预算」的依赖。
+    #   闭式：theory4 = theory2 + (RAR + CONT) + 4d。RAR/CONT 是 sim/config.py 里的**仿真设定值**，
+    #   故此处把该公式在若干预算下重算，用于如实量化「头条倍率有多少来自设定值、多少来自协议本身」。
+    "sens_timers": {
+        "note": "模型解析（把 theory4 的闭式公式在不同定时器预算下重算），不是新仿真；用于量化倍率对设定值的依赖",
+        "points": [
+            {"k": k, "timer_ms": t, "total4_ms": round(_theory2 + t + 4 * _d, 2),
+             "ratio": round((_theory2 + t + 4 * _d) / _theory2, 2),
+             "cut_pct": round((1 - _theory2 / (_theory2 + t + 4 * _d)) * 100, 1)}
+            for k, t in [("无定时器（纯协议差异：仅多一次往返）", 0.0),
+                         ("标准枚举下限 10 + 8", 18.0),
+                         ("标准枚举上限 80 + 64", 144.0),
+                         ("本项目设定 160 + 200", 360.0)]
+        ]
+    },
     "measured": {
         "wide_py": {"two": 12.42, "four": 399.5, "run": "exp/t3_access/t3_table.txt（seed 42，容量不受限）"},
         "wide_ns3": {"two": 12.4, "four": 403.5, "run": "exp/t3_access/t3_table.txt"},
@@ -861,6 +876,14 @@ put("hs/measured/wide_py_two", handshake["measured"]["wide_py"]["two"], "exp/t3_
     "exp/t3_access/t3_table.txt", "容量不受限 twostep（Py）")
 put("hs/measured/wide_py_four", handshake["measured"]["wide_py"]["four"], "exp/t3_access/t3_table.txt",
     "exp/t3_access/t3_table.txt", "容量不受限 rel17（Py）")
+# 口径敏感性（模型解析）→ metrics：四步时延/倍率/降幅 随「定时器预算」变化
+for _p in handshake["sens_timers"]["points"]:
+    _tag = "sens4/%g" % _p["timer_ms"]
+    _src = "sim/config.py（RAR_WINDOW_MS + CONTENTION_TIMER_MS，仿真设定值）"
+    put(_tag + "/timer_ms", _p["timer_ms"], MAIN, _src, "模型解析：四步/两步倍率对定时器预算的敏感度")
+    put(_tag + "/total4_ms", _p["total4_ms"], MAIN, _src, "同上")
+    put(_tag + "/ratio", _p["ratio"], MAIN, _src, "同上")
+    put(_tag + "/cut_pct", _p["cut_pct"], MAIN, _src, "同上")
 
 # 抗冲击 → metrics
 for row in burst["rows"]:

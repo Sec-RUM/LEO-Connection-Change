@@ -1,5 +1,5 @@
 /* ============================================================================
-   core.js —— 页面基础设施（数据图元 / 溯源抽屉 / 切屏 / 对比开关 / 通用图元）
+   core.js —— 页面基础设施（数据图元 / 溯源抽屉 / 切屏 / 通用图元）
    铁律：页面只读 window.DEMO_DATA，绝不硬编码数字。
         data-metric + data-value 由同一个值生成 → 显示与断言不可能漂移；
         data-golden 为**人工从《双轨交叉验证对照表》誊写的独立副本**，由自检脚本
@@ -10,8 +10,8 @@
   var D = window.DEMO_DATA;
   if (!D) { document.body.innerHTML = '<pre style="color:#c0392b">data.js 未加载</pre>'; return; }
 
-  var state = { screen: 'S1', mode: 'ours' };   // mode: ours | base
-  var listeners = { screen: [], mode: [] };
+  var state = { screen: 'S1' };   // 当前屏；对照口径固定为「本方案」（对照已改为左侧图例说明）
+  var listeners = { screen: [] };
 
   /* ---------------- 数值 ---------------- */
   function V(key) {
@@ -64,7 +64,7 @@
       (s.note ? '<div class="k">说明</div><div class="v">' + s.note + '</div>' : '') +
       '<div class="k">复现命令</div><div class="v">' + (D.evidence.filter(function (e) {
         return e.run === D.runs[key];
-      }).map(function (e) { return e.how; })[0] || '见 S20 证据索引') + '</div>' +
+      }).map(function (e) { return e.how; })[0] || '见 X1 证据附录') + '</div>' +
       '<div class="k">口径边界</div><div class="v">接入时延仅统计成功终端；伪造拦截率分母 = 进入认证环节的伪造终端</div>';
     d.innerHTML = html;
     d.classList.add('on');
@@ -89,18 +89,6 @@
     listeners.screen.forEach(function (f) { try { f(id); } catch (e) { console.error(e); } });
   }
   function onScreen(f) { listeners.screen.push(f); }
-  function onMode(f) { listeners.mode.push(f); }
-
-  /* ---------------- 对比开关 ---------------- */
-  function setMode(m) {
-    state.mode = m;
-    var bs = document.querySelectorAll('.switch button');
-    for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('on', bs[i].getAttribute('data-mode') === m);
-    document.body.setAttribute('data-mode', m);
-    var bn = document.getElementById('mode-banner');
-    if (bn) bn.style.display = (m === 'base') ? 'block' : 'none';
-    listeners.mode.forEach(function (f) { try { f(m); } catch (e) { console.error(e); } });
-  }
 
   /* ---------------- 通用图元 ---------------- */
   /** 横向条形对比：items=[{label, v, cls, text, w}]，wmax 归一化上限 */
@@ -113,12 +101,15 @@
         '<div class="bv">' + i.text + '</div></div>';
     }).join('') + '</div>';
   }
-  /** 表格：cols=[...], rows=[[html,...]]；外层带横向滚动，避免窄卡片裁掉末列 */
+  /** 表格：cols=[...], rows=[[html,...]]；外层带横向滚动，避免窄卡片裁掉末列
+   *  o.noHead=true → 省略表头（多个同构表纵向堆叠时避免表头重复 N 次） */
   function table(cols, rows, o) {
     o = o || {};
+    var head = o.noHead ? '' :
+      '<thead><tr>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead>';
     return '<div class="tb-wrap">' +
       '<table class="tb">' +
-      '<thead><tr>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead>' +
+      head +
       '<tbody>' + rows.map(function (r) {
         return '<tr' + (r.__cls ? ' class="' + r.__cls + '"' : '') + '>' +
           r.map(function (c, i) { return '<td' + (i === 0 && o.firstLeft === false ? ' style="text-align:right"' : '') + '>' + c + '</td>'; }).join('') +
@@ -184,14 +175,13 @@
       }
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
-    setMode('ours');
   }
 
   window.DEMO = {
     D: D, state: state, V: V, n: n,
     bars: bars, table: table, card: card, panel: panel, tile: tile, fold: fold,
     runBadge: runBadge, deltaHTML: deltaHTML,
-    show: show, setMode: setMode, onScreen: onScreen, onMode: onMode,
+    show: show, onScreen: onScreen,
     openDrawer: openDrawer, closeDrawer: closeDrawer, boot: boot
   };
 })();

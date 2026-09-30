@@ -10,7 +10,7 @@
             warn: '#b7791f', ink: '#152232', muted: '#6b7c91', line: '#dbe3ec' };
   var reg = [], made = {};
   var mode = 'ours';
-  /** 对比开关：被强调的一侧用红色，另一侧用灰蓝（只改呈现侧重，不改数值） */
+  /** 对照口径固定为「本方案」：被强调的一侧用青，另一侧用灰蓝（只改呈现侧重，不改数值） */
   function em(side) { return (side === mode) ? C.ours : C.base; }
   function bd(side) { return (side === mode) ? { borderColor: '#152232', borderWidth: 2 } : {}; }
 
@@ -207,8 +207,5 @@
     get: function (dom) { return made[dom] || null; },
     cS4: cS4, cS6: cS6, cS11: cS11, cS15: sensChart, cS16: cS16, cS18: cS18
   };
-  // 对比开关 → 同步所有图表配色侧重（重新 setOption，不重算数据）
-  if (window.DEMO && window.DEMO.onMode) {
-    window.DEMO.onMode(function (m) { mode = m; onShow(window.DEMO.state.screen); });
-  }
+  // 对照口径固定为「本方案」（高亮本方案系列）；原「对比开关」已移除，改为左侧图例说明。
 })();

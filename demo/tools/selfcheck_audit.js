@@ -229,5 +229,7 @@ const DEPRECATED = ['12.02', '380.92'];   // 任务书废弃值，出现即判�
   /* 同步落盘报告：process.exit() 会丢弃尚未 flush 的管道 stdout，报告必须可取证 */
   try { fs.writeFileSync(path.join(path.dirname(shot || target), '_selfcheck', 'audit_report.txt'), L.join('\r\n') + '\r\n', 'utf8'); } catch (e2) {}
   console.log(L.join('\n'));
-  process.exit(fail.length ? 1 : 0);
+  /* ★根治（2026-09-29）★：原用 process.exit() —— stdout 异步写，重定向时缓冲被截断，
+     导致「汇总行丢失 + 退出码不稳」。改 process.exitCode，由事件循环自然退出后 flush。 */
+  process.exitCode = fail.length ? 1 : 0;
 })().catch(e => { console.error('[FATAL] ' + e.message); process.exit(2); });

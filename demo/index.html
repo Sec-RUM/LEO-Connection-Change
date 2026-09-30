@@ -8,13 +8,22 @@
 <!-- 零外部引用：无 CDN、无 web font、无后端。断网双击即开。 -->
 <link rel="stylesheet" href="css/app.css"/>
 </head>
-<body data-mode="ours">
+<body>
 
 <div class="app">
   <aside class="side">
     <h1>天权 · LEO 直连应急组网</h1>
     <div class="sub">面向应急救灾的低轨卫星-地面融合组网快速接入系统<br/>双轨仿真（Python + ns-3）成果演示</div>
     <div id="nav"></div>
+    <div class="legend-panel">
+      <h3>图例 · 对照口径</h3>
+      <div class="lg-row"><i style="background:#0e7490"></i><span><b>本方案</b>：预测式星间预迁移 + 两步 RACH + 双根认证</span></div>
+      <div class="lg-row"><i style="background:#8fa3b6"></i><span><b>Rel-17 基线</b>：四步 RACH + 单根认证，无预迁移</span></div>
+      <div class="lg-row"><i style="background:#1e8449"></i><span>达标 / 认证通过 / 链路可用</span></div>
+      <div class="lg-row"><i style="background:#c0392b"></i><span>危险：拦截 · 断网 · 失配回退 · 越界失效</span></div>
+      <div class="lg-row"><i style="background:#7a4e9e"></i><span>卫星 / 星上实体</span></div>
+      <div class="lg-note">全部对照均为<b>同场景、单变量</b>（只改一项，其余固定）；口径以 <span class="mono">docs/双轨交叉验证对照表.md</span> 为准。</div>
+    </div>
     <div class="foot">
       数据权威：<span class="mono">docs/双轨交叉验证对照表.md</span><br/>
       页面只读 <span class="mono">demo/data.js</span>，零硬编码。<br/>
@@ -26,17 +35,7 @@
     <div class="top">
       <div class="ttl">演示<small>5 分钟主线：A1 一屏看懂 → A2 方法全景 → A3/A4/A5 三机制 → A6 结果 → A8 边界（A7 与附录备查）</small></div>
       <div class="spacer"></div>
-      <div class="switch" role="group" aria-label="对比开关">
-        <button type="button" data-mode="ours" class="on" onclick="DEMO.setMode('ours')">本方案</button>
-        <button type="button" data-mode="base" onclick="DEMO.setMode('base')">Rel-17 基线</button>
-      </div>
       <span class="badge-auth">数字权威：<b>对照表</b>（硬要求①）· 每图带 run_id（硬要求②）</span>
-    </div>
-
-    <div id="mode-banner" style="display:none;margin:0 0 12px;padding:8px 12px;border-radius:8px;
-         background:#eef2f5;border:1px solid #d7e0e6;color:#3c4a5c;font-size:12.5px">
-      当前视图：<b>Rel-17 基线口径</b> —— 基线列已高亮，本方案列弱化。切换回「本方案」可复原。
-      <span class="note" style="display:inline;margin-left:8px">（该开关只改变<b>呈现侧重</b>，不改变任何数值。）</span>
     </div>
 
     <div id="main"></div>

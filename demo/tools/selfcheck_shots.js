@@ -107,5 +107,8 @@ const VIEW = { width: 1600, height: 1000 };
     + '  → ' + path.basename(r.file)));
   fs.writeFileSync(path.join(outDir, 'summary.txt'), sum.join('\r\n') + '\r\n', 'utf8');
   console.log(sum.join('\n'));
-  process.exit(errors.length ? 1 : 0);
+  /* ★修复（2026-09-29 审计）★：原写作 process.exit(...) —— console.log 写 stdout 是**异步**的，
+     重定向到文件/管道时缓冲区尚未 flush 即被 exit 截断 → 汇总行丢失、退出码不稳定。
+     改用 process.exitCode，由事件循环自然退出，保证 stdout 完整写出。 */
+  process.exitCode = errors.length ? 1 : 0;
 })().catch(e => { console.error('[FATAL] ' + e.message); process.exit(2); });

@@ -53,25 +53,21 @@ const ck = (name, ok, extra) => steps.push({ name, ok: !!ok, extra: extra || '' 
   }
   ck('侧栏切屏 ' + ids.length + ' 屏，每屏唯一可见', navBad.length === 0, navBad.join(' '));
 
-  /* ② 对比开关 */
-  const before = await page.evaluate(() => {
+  /* ② 对照口径：左侧静态图例面板（原「对比开关」已移除，改为常驻说明） */
+  const lg = await page.evaluate(() => {
     DEMO.show('A5');
+    const p = document.querySelector('.legend-panel');
     const el = document.querySelector('[data-metric="marg/premig_on/切换总时延均值_ms"]');
-    return { v: el.getAttribute('data-value'), txt: el.textContent.trim() };
+    return {
+      hasPanel: !!p, txt: p ? p.innerText : '',
+      noSwitch: !document.querySelector('.switch') && !document.getElementById('mode-banner'),
+      v: el.getAttribute('data-value'), disp: el.textContent.trim()
+    };
   });
-  await page.evaluate(() => DEMO.setMode('base'));
-  await new Promise(r => setTimeout(r, 250));
-  const after = await page.evaluate(() => {
-    const el = document.querySelector('[data-metric="marg/premig_on/切换总时延均值_ms"]');
-    const bn = document.getElementById('mode-banner');
-    return { mode: document.body.getAttribute('data-mode'), v: el.getAttribute('data-value'),
-             txt: el.textContent.trim(), banner: bn ? getComputedStyle(bn).display : 'none' };
-  });
-  ck('对比开关 → data-mode=base', after.mode === 'base');
-  ck('对比开关不改变任何数值', before.v === after.v && before.txt === after.txt, before.v + ' → ' + after.v);
-  ck('对比开关显示口径横幅', after.banner !== 'none');
-  await page.evaluate(() => DEMO.setMode('ours'));
-  await new Promise(r => setTimeout(r, 200));
+  ck('左侧图例面板含对照口径（本方案 / Rel-17 基线）',
+    lg.hasPanel && /本方案/.test(lg.txt) && /Rel-17 基线/.test(lg.txt));
+  ck('页面上已无「基线对比开关」', lg.noSwitch);
+  ck('口径说明不改变数值', Math.abs(parseFloat(lg.v) - 12.06) <= 1e-9, lg.v + ' / ' + lg.disp);
 
   /* ③ 溯源抽屉 */
   const dr = await page.evaluate(() => {
@@ -128,7 +124,7 @@ const ck = (name, ok, extra) => steps.push({ name, ok: !!ok, extra: extra || '' 
     await new Promise(r => setTimeout(r, 300));
     ANIM.seek('a1', 1);
     const on = [...document.querySelectorAll('#sc-A1 .kpi')].filter(e => e.classList.contains('on')).length;
-    const lit = [...document.querySelectorAll('#a1-terms .t')].filter(e => e.getAttribute('fill') === '#c0392b').length;
+    const lit = [...document.querySelectorAll('#a1-terms .t')].filter(e => e.getAttribute('fill') !== '#b6c4d2').length;
     return { on, total: document.querySelectorAll('#sc-A1 .kpi').length, lit };
   });
   ck('A1 终态：全部 KPI 揭示', R.on === R.total && R.total > 0, R.on + '/' + R.total);

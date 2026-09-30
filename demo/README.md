@@ -2,7 +2,8 @@
 
 > **交付形态**：离线单页 HTML。**双击 `index.html` 即开，断网可放，零 CDN、零后端、零构建工具、零 web font。**
 > **数字权威**：`docs/双轨交叉验证对照表.md`（任务书硬要求①）——页面上每个数字都必须能在该表找到行。
-> **施工依据**：`docs/demo实施蓝图.md`（20 屏施工表）；**施工结果与自检记录**：`docs/demo自检能力与优化登记.md` §十八。
+> **施工依据**：`docs/demo实施蓝图.md`（施工蓝图）；**施工结果与自检记录**：`docs/demo自检能力与优化登记.md` §十八、§十九（动画主线版 v2）。
+> **优化升级路线**：`docs/demo优化升级方案_对标分析与路线图.md`（v2 立项）。
 
 ---
 
@@ -10,8 +11,8 @@
 
 直接双击 `index.html`。（推荐 Chrome / Edge；首次打开无需任何安装，**无需联网**。）
 
-**5 分钟讲法**（顶栏已写明路径）：`S1`（30 s）→ 机制① `S2–S4` → 机制② `S5–S7` → 机制③ `S8–S10`（各 ~70 s）→ `S19`（20 s）。
-其余屏（S11–S18、S20）备查不主动讲 —— 被追问时按侧栏目录直接跳。
+**5 分钟讲法**（顶栏已写明路径）：`A1` 一屏看懂（~30 s）→ `A2` 方法全景（~40 s）→ 机制① `A3` / 机制② `A4` / 机制③ `A5`（各 ~60 s）→ `A6` 结果与支撑机制（~40 s）→ `A8` 边界与诚实（~30 s）。
+`A7` 可证伪与 `X1` 证据附录备查、不主动讲 —— 被追问时按侧栏目录直接跳。
 
 ---
 
@@ -19,14 +20,15 @@
 
 ```
 demo/
-├── index.html                  # 唯一入口（零外部引用；脚本按序加载 4 个本地 js）
+├── index.html                  # 唯一入口（零外部引用；脚本按序加载 5 个本地 js）
 ├── data.js                     # 预生成数据（tools/build_demo_data.py 产出；内嵌 run_id 与来源）
 ├── css/app.css                 # 样式（浅色主题；无 web font）
 ├── js/
-│   ├── core.js                 #   数据图元 / 溯源抽屉 / 切屏 / 对比开关 / 通用图元
+│   ├── core.js                 #   数据图元 / 溯源抽屉 / 切屏 / 通用图元
+│   ├── anim.js                 #   确定性动画引擎（归一化时间 u 的纯函数：可播放/暂停/拖动/定格）
 │   ├── charts.js               #   ECharts 封装（惰性初始化 + 切屏 resize）
 │   ├── webgl3d.js              #   原生 WebGL 手写 651 星几何屏（零 3D 库）
-│   └── screens.js              #   20 屏内容（全部由 data.js 驱动）
+│   └── scenes.js               #   9 屏内容 A1–A8 + X1（全部由 data.js 驱动）
 ├── vendor/                     # 本地化第三方库（**不得引用 CDN**）
 │   ├── echarts.min.js          #   图表：Apache-2.0（1,030,855 B）
 │   └── CHECKSUMS.txt           #   字节数 + sha256 校验清单（入库前必核对）
@@ -34,10 +36,10 @@ demo/
 │   ├── earth_blue_marble_1024x512.jpg   # 源素材（NASA Blue Marble，公有领域；LANCZOS 降采样）
 │   └── earth_texture.js                 # 由上一行**生成**的 data: URI 副本（避免 file:// 跨源污染）
 ├── tools/                      # 数据生成 + 自检脚本（自包含）
-│   ├── build_demo_data.py      #   由 results/ + 对照表 → data.js（含 4 类完整性断言）
+│   ├── build_demo_data.py      #   由 results/ + 对照表 → data.js（含 5 类完整性断言）
 │   ├── selfcheck_audit.js      #   自检 A：外部请求 / JS 错误 / 数字断言 / 独立副本 / 示意水印 / 渲染残缺
 │   ├── selfcheck_shots.js      #   自检 B：逐屏遍历截图 + 每屏断言
-│   ├── selfcheck_interact.js   #   自检 C：交互回归（切屏/对比开关/抽屉/动画/3D/图表落图）
+│   ├── selfcheck_interact.js   #   自检 C：交互回归（切屏/左侧图例口径/抽屉/动画/3D/图表落图）
 │   └── fixtures/               #   自检工具自身的回归用例（3 个，含 2 个负向用例）
 └── _selfcheck/                 # 自检产物（截图 + summary.txt，**gitignore，不入库**）
 ```
@@ -76,7 +78,7 @@ demo/
 ```js
 window.DEMO_DATA = {
   generated_at, builder, repo_head, authority,
-  metrics:  { "py/wenchuan_storm2/接入时延均值_ms": 193.44, … },   // 969 项，供 data-metric 断言
+  metrics:  { "py/wenchuan_storm2/接入时延均值_ms": 193.44, … },   // 1020 项，供 data-metric 断言
   runs:     { "py/wenchuan_storm2/接入时延均值_ms": "wenchuan_storm2_s20260901_r1_…", … },
   source:   { … : { file, section, note } },
   scenarios, funnel, timeline, crossval, two_vs_four, premig, t8, priority,
@@ -102,7 +104,7 @@ NODE_PATH="$WS/node_modules" "$NODE" demo/tools/selfcheck_audit.js "$IDX" demo/_
 # B) 逐屏遍历截图（人看，产物在 demo/_selfcheck/）
 NODE_PATH="$WS/node_modules" "$NODE" demo/tools/selfcheck_shots.js "$IDX" demo/_selfcheck
 
-# C) 交互回归（切屏 / 对比开关 / 溯源抽屉 / 分步动画 / 3D 控件与像素 / 图表落图）
+# C) 交互回归（切屏 / 左侧图例口径 / 溯源抽屉 / 分步动画 / 3D 控件与像素 / 图表落图）
 NODE_PATH="$WS/node_modules" "$NODE" demo/tools/selfcheck_interact.js "$IDX"
 
 # D) 纯断网截图（验证「断网可放」）
@@ -118,7 +120,7 @@ NODE_PATH="$WS/node_modules" "$NODE" demo/tools/selfcheck_interact.js "$IDX"
 3. **页面数字逐字 == 权威数据** → 保证数据真实可溯源
 
 **另加 5 项硬检查**：不得出现废弃值 `12.02` / `380.92`；每个数据图元必须带 `run_id`；
-`data-golden` 独立副本必须双向一致；每个 `.schematic` 必须含「示意」；全 20 屏文本不得出现 `undefined` / `NaN`。
+`data-golden` 独立副本必须双向一致；每个 `.schematic` 必须含「示意」；全 9 屏文本不得出现 `undefined` / `NaN`。
 
 > **自检工具本身也要验证**：`tools/fixtures/` 下有 2 个**负向用例**（`contract_bad.html` / `golden_bad.html`），
 > 它们**必须**被判 FAIL（退出码 1）—— 否则说明检查形同虚设。实测：4 项新检查全部抓出。
@@ -133,7 +135,7 @@ NODE_PATH="$WS/node_modules" "$NODE" demo/tools/selfcheck_interact.js "$IDX"
 | `data.js` | 549,635 B（0.54 MB；含 651 星 12 帧坐标 172 KB + 事件回放 106 KB） |
 | `assets/earth_texture.js`（生成） | 121,705 B |
 | `assets/earth_blue_marble_1024x512.jpg`（源素材） | 91,042 B |
-| `js/`（4 个文件） | ≈160 KB（screens 121 KB / webgl3d 18 KB / charts 13 KB / core 8 KB） |
+| `js/`（5 个文件） | ≈130 KB（scenes 83 KB / webgl3d 19 KB / charts 13 KB / core 9 KB / anim 6 KB） |
 | `css/` + `index.html` + `tools/` | ≈150 KB |
 | **合计（不含 gitignore 的 `_selfcheck/`）** | **≈ 2.0 MB** |
 
@@ -149,7 +151,7 @@ NODE_PATH="$WS/node_modules" "$NODE" demo/tools/selfcheck_interact.js "$IDX"
 C:/Users/ASUS/.workbuddy/binaries/python/envs/default/Scripts/python.exe demo/tools/build_demo_data.py
 ```
 
-脚本在写 `data.js` 之前执行 **4 类完整性断言**，任一不过即**拒绝生成**（退出码 1）：
+脚本在写 `data.js` 之前执行 **5 类完整性断言**，任一不过即**拒绝生成**（退出码 1）：
 
 | # | 断言 | 意义 |
 |---|---|---|
